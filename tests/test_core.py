@@ -83,6 +83,11 @@ class CoreTest(unittest.TestCase):
             legacy_src = temp_path / "out" / "src"
             legacy_src.mkdir(parents=True)
             (legacy_src / "app.json").write_text("legacy", "utf-8")
+            legacy_reports = temp_path / "out" / "reports"
+            legacy_reports.mkdir(parents=True)
+            (legacy_reports / "takeWxapkg-report.json").write_text("legacy", "utf-8")
+            legacy_zip = temp_path / "out" / "takeWxapkg-src.zip"
+            legacy_zip.write_bytes(b"legacy")
             result = extract_packages([pkg], temp_path / "out")
             self.assertEqual(result.src_dir.name, "decompiled")
             self.assertTrue((result.src_dir / "app-config.json").is_file())
@@ -94,8 +99,8 @@ class CoreTest(unittest.TestCase):
             self.assertFalse(project_config["setting"]["es6"])
             self.assertFalse(project_config["setting"]["urlCheck"])
             self.assertFalse(legacy_src.exists())
-            self.assertTrue(result.zip_path.is_file())
-            self.assertTrue((result.reports_dir / "takeWxapkg-report.json").is_file())
+            self.assertFalse(legacy_reports.exists())
+            self.assertFalse(legacy_zip.exists())
             self.assertEqual(result.extracted_files, 2)
             self.assertTrue((result.src_dir / "pages" / "index.json").is_file())
             self.assertTrue((result.src_dir / "pages" / "index.wxml").is_file())

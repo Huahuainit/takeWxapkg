@@ -7,7 +7,7 @@
 
 `takeWxapkg` 是一个 Windows 桌面版微信小程序 `.wxapkg` 本地解包与反编译辅助工具。
 
-它面向安全审计、代码学习和本地包结构分析场景，支持自动搜索微信 4.x 小程序缓存目录，选择主包/分包后直接解包，并生成可查看的源码目录、zip 包和分析报告。
+它面向安全审计、代码学习和本地包结构分析场景，支持自动搜索微信 4.x 小程序缓存目录，选择主包/分包后直接解包，并生成可查看的源码目录。
 
 ## 界面预览
 
@@ -24,8 +24,6 @@
 - [x] 支持分包代码和插件包文件整理
 - [x] 支持 JS / JSON / WXML / WXSS / WXS / 图片 / wasm / worker 等文件输出
 - [x] 支持常见微信开发者工具导入错误修复
-- [x] 支持源码 zip 一键生成
-- [x] 支持反编译报告输出
 - [x] 支持目录内 `.wxapkg` 包批量删除
 - [x] 支持 PyInstaller onefile exe 打包
 
@@ -116,15 +114,12 @@ takeWxapkg 会优先按同一个 AppID、同一个版本目录聚合主包和分
 ```text
 output/
 └─ wx0000000000000000_v123/
-   ├─ decompiled/
-   │  ├─ app.json
-   │  ├─ pages/
-   │  ├─ components/
-   │  ├─ app.js
-   │  └─ app.wxss
-   ├─ reports/
-   │  └─ takeWxapkg-report.json
-   └─ takeWxapkg-src.zip
+   └─ decompiled/
+      ├─ app.json
+      ├─ pages/
+      ├─ components/
+      ├─ app.js
+      └─ app.wxss
 ```
 
 ## 项目结构
@@ -136,7 +131,7 @@ takeWxapkg/
 ├─ takewxapkg/              主程序源码
 │  ├─ gui.py                PySide6 桌面界面
 │  ├─ path_finder.py        微信缓存目录发现和 wxapkg 扫描
-│  ├─ wxapkg_core.py        解密、解包、后处理和报告生成
+│  ├─ wxapkg_core.py        解密、解包和兼容后处理
 │  └─ cli.py                命令行入口
 ├─ tests/                   单元测试
 ├─ vendor/                  本地可选运行时说明

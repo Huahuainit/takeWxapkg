@@ -10,7 +10,6 @@ import struct
 import subprocess
 import sys
 import time
-import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Callable, Iterable
@@ -89,8 +88,6 @@ class ExtractResult:
     appid: str
     output_dir: Path
     src_dir: Path
-    zip_path: Path
-    reports_dir: Path
     package_count: int
     extracted_files: int
     generated_files: list[str]
@@ -1528,42 +1525,14 @@ def _dedupe(values: list[str]) -> list[str]:
     return result
 
 
-def make_src_zip(src_dir: Path, zip_path: Path) -> tuple[Path, list[str]]:
-    zip_path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path = _unique_output_file(zip_path.with_suffix(zip_path.suffix + ".tmp"))
-    entries: list[str] = []
-
-    with zipfile.ZipFile(tmp_path, "w", zipfile.ZIP_DEFLATED) as archive:
-        for path in sorted(src_dir.rglob("*")):
-            if not path.is_file() or path.is_symlink():
-                continue
-            rel = path.relative_to(src_dir).as_posix()
-            normalized = normalize_package_path(rel)
-            arcname = f"{src_dir.name}/{normalized}"
-            normalize_package_path(arcname)
-            archive.write(path, arcname)
-            entries.append(arcname)
-
+def _remove_output_path(path: Path) -> None:
     try:
-        tmp_path.replace(zip_path)
-        final_zip_path = zip_path
-    except PermissionError:
-        final_zip_path = _unique_output_file(zip_path)
-        tmp_path.replace(final_zip_path)
-    return final_zip_path, entries
-
-
-def _unique_output_file(path: Path) -> Path:
-    if not path.exists():
-        return path
-
-    stamp = time.strftime("%Y%m%d-%H%M%S")
-    for index in range(1, 1000):
-        suffix = f"-{stamp}" if index == 1 else f"-{stamp}-{index}"
-        candidate = path.with_name(f"{path.stem}{suffix}{path.suffix}")
-        if not candidate.exists():
-            return candidate
-    raise WxapkgError(f"无法创建不重名输出文件: {path}")
+        if path.is_dir() and not path.is_symlink():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+    except FileNotFoundError:
+        pass
 
 
 def _app_root() -> Path:
@@ -1631,29 +1600,20 @@ def _extract_with_external_engine(
     src_dir = output_dir / "decompiled"
     legacy_src_dir = output_dir / "src"
     reports_dir = output_dir / "reports"
+    zip_path = output_dir / "takeWxapkg-src.zip"
     if src_dir.exists():
         shutil.rmtree(src_dir)
     if legacy_src_dir.exists():
         shutil.rmtree(legacy_src_dir)
-    if reports_dir.exists():
-        shutil.rmtree(reports_dir)
+    _remove_output_path(reports_dir)
+    _remove_output_path(zip_path)
     src_dir.mkdir(parents=True, exist_ok=True)
-    reports_dir.mkdir(parents=True, exist_ok=True)
 
     use_appid = appid.strip()
-    package_reports: list[dict[str, object]] = []
     for path in package_paths:
         mode = detect_mode(path)
         if mode == "encrypted":
             use_appid = validate_appid(use_appid)
-        package_reports.append(
-            {
-                "path": str(path),
-                "name": path.name,
-                "mode": mode,
-                "size": path.stat().st_size,
-            }
-        )
 
     if progress:
         progress("engine", 10, "正在调用内置反编译引擎")
@@ -1708,49 +1668,22 @@ def _extract_with_external_engine(
         for path in sorted(src_dir.rglob("*"))
         if path.is_file() and not path.is_symlink()
     ]
-    zip_path = output_dir / "takeWxapkg-src.zip"
-    zip_path, zip_entries = make_src_zip(src_dir, zip_path)
-    if progress:
-        progress("packaging", 94, "已生成反编译 ZIP")
-
     if "反编译失败" in stdout or "获取小程序信息失败" in stdout:
         warnings.append(_short_log_tail(stdout))
-    report = {
-        "tool": "takeWxapkg",
-        "engine": "external-runtime",
-        "status": "completed",
-        "appid": appid,
-        "outputDir": str(output_dir),
-        "srcDir": str(src_dir),
-        "zipPath": str(zip_path),
-        "packageCount": len(package_paths),
-        "extractedFiles": len(source_files),
-        "generatedFiles": source_files,
-        "warnings": warnings,
-        "packages": package_reports,
-        "engineLog": stdout,
-        "zipEntries": zip_entries,
-        "elapsedSeconds": round(time.perf_counter() - started, 3),
-    }
-    (reports_dir / "takeWxapkg-report.json").write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
-        "utf-8",
-    )
     if progress:
         progress("completed", 100, "处理完成")
+    elapsed_seconds = round(time.perf_counter() - started, 3)
 
     return ExtractResult(
         status="completed",
         appid=appid,
         output_dir=output_dir,
         src_dir=src_dir,
-        zip_path=zip_path,
-        reports_dir=reports_dir,
         package_count=len(package_paths),
         extracted_files=len(source_files),
         generated_files=source_files,
         warnings=warnings,
-        elapsed_seconds=report["elapsedSeconds"],
+        elapsed_seconds=elapsed_seconds,
     )
 
 
@@ -1783,18 +1716,17 @@ def extract_packages(
     src_dir = output_dir / "decompiled"
     legacy_src_dir = output_dir / "src"
     reports_dir = output_dir / "reports"
+    zip_path = output_dir / "takeWxapkg-src.zip"
     if src_dir.exists():
         shutil.rmtree(src_dir)
     if legacy_src_dir.exists():
         shutil.rmtree(legacy_src_dir)
-    if reports_dir.exists():
-        shutil.rmtree(reports_dir)
+    _remove_output_path(reports_dir)
+    _remove_output_path(zip_path)
     src_dir.mkdir(parents=True, exist_ok=True)
-    reports_dir.mkdir(parents=True, exist_ok=True)
 
     warnings: list[str] = []
     all_files: list[str] = []
-    package_reports: list[dict[str, object]] = []
 
     total = len(package_paths)
     for index, path in enumerate(package_paths, start=1):
@@ -1808,16 +1740,6 @@ def extract_packages(
         decrypted = decrypt_wxapkg(raw, use_appid)
         unpacked = unpack_to_dir(decrypted, src_dir)
         all_files.extend(unpacked.files)
-        package_reports.append(
-            {
-                "path": str(path),
-                "name": path.name,
-                "mode": mode,
-                "files": len(unpacked.files),
-                "commonRoot": unpacked.common_root,
-                "size": path.stat().st_size,
-            }
-        )
         if progress:
             progress("unpacking", int(index / total * 70), f"已解包 {path.name}: {len(unpacked.files)} 个文件")
 
@@ -1840,43 +1762,18 @@ def extract_packages(
         else:
             progress("decompiled", 82, "已按兼容流程完成解包")
 
-    zip_path = output_dir / "takeWxapkg-src.zip"
-    zip_path, zip_entries = make_src_zip(src_dir, zip_path)
-    if progress:
-        progress("packaging", 94, "已生成反编译 ZIP")
-
-    report = {
-        "tool": "takeWxapkg",
-        "status": "completed",
-        "appid": appid,
-        "outputDir": str(output_dir),
-        "srcDir": str(src_dir),
-        "zipPath": str(zip_path),
-        "packageCount": len(package_paths),
-        "extractedFiles": len(set(all_files)),
-        "generatedFiles": generated_files,
-        "warnings": warnings,
-        "packages": package_reports,
-        "zipEntries": zip_entries,
-        "elapsedSeconds": round(time.perf_counter() - started, 3),
-    }
-    (reports_dir / "takeWxapkg-report.json").write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
-        "utf-8",
-    )
     if progress:
         progress("completed", 100, "处理完成")
+    elapsed_seconds = round(time.perf_counter() - started, 3)
 
     return ExtractResult(
         status="completed",
         appid=appid,
         output_dir=output_dir,
         src_dir=src_dir,
-        zip_path=zip_path,
-        reports_dir=reports_dir,
         package_count=len(package_paths),
         extracted_files=len(set(all_files)),
         generated_files=generated_files,
         warnings=warnings,
-        elapsed_seconds=report["elapsedSeconds"],
+        elapsed_seconds=elapsed_seconds,
     )

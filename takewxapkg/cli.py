@@ -21,7 +21,6 @@ def main() -> int:
     )
     print(f"完成: {result.extracted_files} 个文件")
     print(f"源码目录: {result.src_dir}")
-    print(f"ZIP: {result.zip_path}")
     return 0
 
 

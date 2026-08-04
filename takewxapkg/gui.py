@@ -270,7 +270,7 @@ class ExtractWorker(QThread):
                 result = extract_packages(paths, output_dir, appid=appid, progress=relay)
                 results.append(result)
                 self.log.emit(
-                    f"完成 {label}: 解包 {result.extracted_files} 个文件，生成 {len(result.generated_files)} 个项目文件，ZIP 已生成 {result.zip_path.name}"
+                    f"完成 {label}: 解包 {result.extracted_files} 个文件，生成 {len(result.generated_files)} 个项目文件"
                 )
             self.progress.emit("completed", 100, "全部任务完成")
             self.done.emit(results)
@@ -962,9 +962,8 @@ class MainWindow(QMainWindow):
         self.status_label.setText("完成")
         for result in results:
             self._log(f"反编译目录: {result.src_dir}")
-            self._log(f"下载包: {result.zip_path}")
             if result.warnings:
-                self._log(f"提示: {len(result.warnings)} 条 warning，详见 reports")
+                self._log(f"提示: {len(result.warnings)} 条 warning，已自动修正部分兼容问题")
 
     def _on_delete_progress(self, percent: int, _message: str) -> None:
         self.progress.setValue(percent)
