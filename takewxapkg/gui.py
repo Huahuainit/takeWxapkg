@@ -334,7 +334,7 @@ class MainWindow(QMainWindow):
 
         title = QLabel("takeWxapkg")
         title.setObjectName("AppTitle")
-        subtitle = QLabel("微信小程序包本地解包")
+        subtitle = QLabel("敏感信息提取")
         subtitle.setObjectName("Muted")
         subtitle.setWordWrap(True)
         side.addWidget(title)
