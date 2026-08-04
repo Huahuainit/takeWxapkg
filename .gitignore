@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Build artifacts
+build/
+dist/
+*.spec.bak
+build_exe.bat
+
+# Runtime/output data
+output/
+outputs/
+work/
+reports/
+vendor/wx_decompiler_runtime/
+*.wxapkg
+*.zip
+
+# Local config / logs
+.env
+.env.*
+*.log
