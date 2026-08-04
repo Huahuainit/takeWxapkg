@@ -37,7 +37,7 @@
 
 Windows 打包版可通过网盘下载:
 
-[https://pan.quark.cn/s/d366d1adeb28](https://pan.quark.cn/s/d366d1adeb28)
+[https://pan.quark.cn/s/01daf93dbc55](https://pan.quark.cn/s/01daf93dbc55)
 
 ## 方式一: 使用源码运行
 
