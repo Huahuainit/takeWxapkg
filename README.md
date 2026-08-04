@@ -168,3 +168,7 @@ A: 默认会从微信缓存目录路径中识别 AppID。只有识别错误时�
 ## 贡献
 
 欢迎提交 issue 和 pull request。建议提交前先运行测试，确认不会破坏基础解包、目录扫描和打包逻辑。
+
+## 参考项目
+
+本项目在小程序包解包、分包处理和反编译流程设计上参考了 [Wedecode](https://github.com/biggerstar/wedecode) 项目的实现思路。
