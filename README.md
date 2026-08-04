@@ -35,6 +35,12 @@
 请遵守国家法律, 严禁任何非法用途,
 若你使用的范围不在国家法律允许的范围内， 造成的一切法律后果与作者无关。
 
+## 打包版下载
+
+Windows 打包版可通过网盘下载:
+
+[https://pan.quark.cn/s/d366d1adeb28](https://pan.quark.cn/s/d366d1adeb28)
+
 ## 方式一: 使用源码运行
 
 准备环境:
@@ -82,7 +88,7 @@ python -m venv .venv
 dist/takeWxapkg.exe
 ```
 
-当前配置使用 PyInstaller onefile。如果本机存在 `vendor/wx_decompiler_runtime`，打包时会自动嵌入 exe，不会在 exe 同级目录生成 `_internal`。
+当前配置使用 PyInstaller onefile，打包后不会在 exe 同级目录生成 `_internal`。
 
 ## 小程序包目录结构
 
@@ -159,28 +165,6 @@ A: 小程序包本身可能缺少某些分包、插件或公共资源。为了�
 **Q: 加密包 AppID 不对怎么办?**
 
 A: 默认会从微信缓存目录路径中识别 AppID。只有识别错误时才需要勾选“强制使用上方 AppID”并手动填写。
-
-**Q: 为什么 GitHub 源码里没有 `vendor/wx_decompiler_runtime`?**
-
-A: 这个目录是本地可选运行时，体积较大，并且可能包含第三方组件。源码仓库默认不提交它；本地打包 exe 时，如果目录存在，会自动嵌入。
-
-## GitHub 上传注意
-
-以下内容不要上传到仓库:
-
-- `.venv/`
-- `build/`
-- `dist/`
-- `output/`
-- `outputs/`
-- `work/`
-- `__pycache__/`
-- `*.wxapkg`
-- `*.zip`
-- `build_exe.bat`
-- `vendor/wx_decompiler_runtime/`
-
-本项目已经在 `.gitignore` 中排除了这些路径。
 
 ## 第三方声明
 
