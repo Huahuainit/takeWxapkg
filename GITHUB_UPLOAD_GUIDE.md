@@ -32,9 +32,3 @@ Do not upload local build or runtime data:
 - `*.zip`
 - `build_exe.bat`
 - `vendor/wx_decompiler_runtime/`
-
-## Optional Runtime
-
-`vendor/wx_decompiler_runtime/` is ignored by default. Keep it local when building
-your own exe. If you publish a binary that includes a third-party runtime, include
-`THIRD_PARTY_NOTICES.md` and the relevant license text.

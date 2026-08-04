@@ -133,7 +133,6 @@ output/
 takeWxapkg/
 ├─ assets/                  UI 静态资源
 ├─ docs/images/             README 截图
-├─ licenses/                第三方许可证文本
 ├─ takewxapkg/              主程序源码
 │  ├─ gui.py                PySide6 桌面界面
 │  ├─ path_finder.py        微信缓存目录发现和 wxapkg 扫描
@@ -165,10 +164,6 @@ A: 小程序包本身可能缺少某些分包、插件或公共资源。为了�
 **Q: 加密包 AppID 不对怎么办?**
 
 A: 默认会从微信缓存目录路径中识别 AppID。只有识别错误时才需要勾选“强制使用上方 AppID”并手动填写。
-
-## 第三方声明
-
-如果你发布的 exe 或压缩包包含第三方运行时，请同步提供 `THIRD_PARTY_NOTICES.md` 和对应许可证文本，并遵守相关开源许可证要求。
 
 ## 贡献
 
